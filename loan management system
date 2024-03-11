@@ -1,0 +1,380 @@
+#include <iostream>
+#include <cmath>
+#include <fstream>
+using namespace std;
+class Bank {
+string name,adress,phoneno;
+float balance;
+int type,acc_no,dd,yy,mm,dei,txti,cd,cm,cy,pin;
+public:
+Bank(): name(""), adress(""), acc_no(0), balance(0.0),dd(0),mm(0),yy(0),type(0),dei(0),txti(0),cd(0),cm(0),cy(0) {}
+
+public:
+    bool find(int k){
+    fstream myfile,sfile;
+    string ss;
+    myfile.open("Accounts.dat",ios::in);
+    sfile.open("Accounts.txt",ios::in);
+     if(myfile.is_open() && sfile.is_open())
+    {
+        while(myfile.read(reinterpret_cast<char*>(&type),sizeof(type)) && getline(sfile,ss))
+        {
+        myfile.read(reinterpret_cast<char*>(&acc_no),sizeof(acc_no));
+        myfile.read(reinterpret_cast<char*>(&dei),sizeof(dei));
+        myfile.read(reinterpret_cast<char*>(&txti),sizeof(txti));
+        myfile.read(reinterpret_cast<char*>(&pin),sizeof(pin));
+        myfile.read(reinterpret_cast<char*>(&balance),sizeof(balance));
+        myfile.read(reinterpret_cast<char*>(&dd),sizeof(dd));
+        myfile.read(reinterpret_cast<char*>(&mm),sizeof(mm));
+        myfile.read(reinterpret_cast<char*>(&yy),sizeof(yy));
+        myfile.read(reinterpret_cast<char*>(&cd),sizeof(cd));
+        myfile.read(reinterpret_cast<char*>(&cm),sizeof(cm));
+        myfile.read(reinterpret_cast<char*>(&cy),sizeof(cy));
+        name=ss;
+        getline(sfile,ss);
+        adress=ss;
+        getline(sfile,ss);
+        phoneno=ss;
+        if(acc_no==k)
+        {
+            cout<<"FOUND ACCOUNT"<<endl;
+            myfile.close();
+            sfile.close();
+            return true;
+        }
+        }
+            cout<<"ACCOUNT NOT FOUND"<<endl;
+            myfile.close();
+            sfile.close();
+            return false;
+    }
+    else{
+        cout<<"file opening error";
+        myfile.close();
+        sfile.close();
+        return false;
+    }
+    
+    
+}
+string getname()
+{
+    return this->name;
+}
+bool readfile(int min)
+{
+    float k,cc;
+    string s,ss,pt;
+    int i,j,p;
+    fstream myfile;
+    cout<<"enter the 6 digit security pin for account\n"<<endl;
+    cin>>p;
+    if(p==pin)
+        {
+            s=to_string(acc_no);
+            s=s+".txt";
+            myfile.open(s,ios::in);
+            getline(myfile,ss);
+            while(getline(myfile,ss))
+            {
+                j=-1;
+                pt="";
+                for(i=ss.length()-1;ss[i]!=' ';i--)
+                {
+                    j=j+1;
+                    pt=pt+ss[i];
+                }
+                k=0.00;
+                for(i=j;pt[i]!='.' and i>=0;i--)
+                {
+                    k=k*10+pt[i]-48;
+                }
+                if(k<min)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+    else
+        {
+            cout<<"security pin incorrect input"<<endl;
+            return false;
+        }
+   
+}
+friend class TwoWheelerLoan;
+friend class VehicleLoan;
+friend class PersonalLoan;
+friend class MaintenanceLoan;
+friend class HomeLoan;
+};
+class Loan {
+public:
+    float rate;
+    int duration;
+
+    Loan(float r, int d) : rate(r), duration(d) {}
+
+    float calculateInterest(float principal) {
+        return principal * pow(1 + rate, duration / 12.0) - principal;
+    }
+};
+
+class VehicleLoan : public Loan {
+public:
+    VehicleLoan(float r, int d) : Loan(r, d) {}
+};
+
+class CarLoan : public VehicleLoan {
+public:
+    CarLoan() : VehicleLoan(0.06, 60) {}
+
+    bool checkEligibility(Bank &ob) {
+        if(ob.readfile(20000))
+        {
+            return true;
+        }
+        else
+        {
+            cout<<"your  last 6 month bank statement is rejected"<<endl;
+            return false;
+        }
+    }
+
+    float calculateInterest(float principal){
+            
+            return Loan::calculateInterest(principal);
+    }
+    void display(Bank &ob,int principal)
+    {
+        cout<<"LOAN APPROVED"<<endl;
+        cout<<"Name :"<<ob.getname()<<endl;
+        cout<<"principal amount :"<<principal<<endl;
+        cout<<"Rate of interest (Compound Interest) on Car loan will be 6 percent per annum.\nIf instalment is not submitted for continuously two months then rate ofinterest will be 8 percent annum.\nDuration of Loan Maximum will be 60Months\n";
+    }
+};
+class TwoWheelerLoan : public VehicleLoan {
+public:
+    TwoWheelerLoan() : VehicleLoan(0.04, 60) {}
+    bool checkEligibility(Bank &ob) {
+       if(ob.readfile(5000))
+        {
+            return true;
+        }
+        else
+        {
+            cout<<"your  last 6 month bank statement is rejected"<<endl;
+            return false;
+        }
+    }
+    float calculateInterest(float principal) {
+      
+            return Loan::calculateInterest(principal);
+    }
+     void display(Bank &ob,int principal)
+    {
+        cout<<"LOAN APPROVED"<<endl;
+        cout<<"Name :"<<ob.getname()<<endl;
+        cout<<"principal amount :"<<principal<<endl;
+        cout<<"Rate of interest (Compound Interest) on Bike loan will be 4 percent  per annum.\nIf instalment is not submitted for continuously two months then rate of interest will be 6 percent annum.\nDuration of Loan Maximum will be 60Months.\n";
+    }
+};
+
+class HomeLoan : public Loan {
+public:
+    HomeLoan() : Loan(0.08, 300) {}
+
+     bool checkEligibility(Bank &ob) {
+        if(ob.readfile(50000))
+        {
+            return true;
+        }
+        else
+        {
+            cout<<"your  last 2 year bank statement is rejected"<<endl;
+            return false;
+        }
+    }
+    float calculateLoanAmount(float salary) {
+        return 0.5 *salary* 15;
+    }
+    void display(Bank &ob)
+        {
+        cout<<"LOAN APPROVED"<<endl;
+        cout<<"Name :"<<ob.getname()<<endl;
+        cout<<" Amount of loan sanctioned will be the 50 percent of person salary per annum multiplyto 15.\n Rate of interest (Compound Interest) on House loan will be 8 percent per annum.\n Duration of Loan maximum will be 200 Months\n";
+        }
+};
+
+class MaintenanceLoan : public Loan {
+public:
+    MaintenanceLoan() : Loan(0.05, 60) {}
+     bool checkEligibility(Bank &ob) {
+        if(ob.readfile(50000))
+        {
+            return true;
+        }
+        else
+        {
+            cout<<"your  last 2 year bank statement is rejected"<<endl;
+            return false;
+        }
+     }
+         void display(Bank &ob)
+        {
+        cout<<"LOAN APPROVED"<<endl;
+        cout<<"Name :"<<ob.getname()<<endl;
+        cout<<" Amount of loan sanctioned will be the 50 percent of person salary per annum multiplyto 15.\n Rate of interest (Compound Interest) on House loan will be 5 percent per annum.\n Duration of Loan maximum will be 60Months\n";
+        }
+
+    float calculateLoanAmount(float salary) {
+        return 0.5 *salary* 15;
+    }
+};
+
+class PersonalLoan : public Loan {
+public:
+    PersonalLoan() : Loan(0.10, 60) {}
+     bool checkEligibility(Bank &ob) {
+        return true;
+    }
+    float calculateLoanAmount(float salary) {
+        return 0.2*salary;
+    }
+     void display(Bank &ob)
+    {
+        cout<<"LOAN APPROVED"<<endl;
+        cout<<"Name :"<<ob.getname()<<endl;
+        cout<<" Rate of Interest(CI) will be 10% per annum upto Maximum 60 Months. \n";
+    }
+};
+
+
+int main() {
+    int choice;
+   do{
+                int customerId;
+                cout << "Enter acc_no\n";
+                cin >> customerId;
+                Bank bb;
+                if (bb.find(customerId)) {
+                cout << "Loan Options:\n";
+                cout << "1. Car Loan\n";
+                cout << "2. Two Wheeler Loan\n";
+                cout << "3. Home Loan\n";
+                cout << "4. Maintenance Loan\n";
+                cout << "5. Personal Loan\n";
+                int loanType;
+                cout << "Enter Loan Type (1-5): ";
+                cin >> loanType;
+                switch (loanType) 
+                {    
+                    case 1:
+                    {
+                    CarLoan carLoan;
+                    if (carLoan.checkEligibility(bb))
+                    {
+                        float loanAmount;
+                        cout << "Enter loan amount: ";
+                        cin >> loanAmount;
+                        float totalInterest = carLoan.calculateInterest(loanAmount);
+                        carLoan.display(bb,loanAmount);
+                        cout<<"totalInterest :"<<totalInterest<<endl;;
+                    }
+                    else
+                    {
+                        cout << "Not eligible for Car Loan.\n";
+                    } 
+                    break;
+                    }
+                    case 2:
+                    {
+                        TwoWheelerLoan bikeLoan;
+                        if (bikeLoan.checkEligibility(bb))
+                        {
+                            float loanAmount;
+                            cout << "Enter loan amount: ";
+                            cin >> loanAmount;
+                            float totalInterest = bikeLoan.calculateInterest(loanAmount);
+                            bikeLoan.display(bb,loanAmount);
+                            cout << "Total Interest: RM " << totalInterest << endl;
+                        }
+                        else
+                        {     
+                            cout << "Not eligible for Two Wheeler Loan.\n";
+                        }
+                        break;
+                }
+                    case 3:
+                    {
+                        HomeLoan homeLoan;
+                        float salary;
+                        cout<<"enter annual salary"<<endl;
+                        cin>>salary;
+                        if (homeLoan.checkEligibility(bb)) 
+                        {     
+                            float loanAmount = homeLoan.calculateLoanAmount(salary);
+                            float totalInterest = homeLoan.calculateInterest(loanAmount);
+                            homeLoan.display(bb);
+                            cout << "Loan Amount: RM " << loanAmount << endl;
+                            cout << "Total Interest: RM " << totalInterest << endl;
+                            
+                        } 
+                        else
+                        {
+                            cout << "Not eligible for Home Loan.\n";
+                            
+                        }
+                        break;
+                        
+                }
+                    case 4:
+                    {
+                        MaintenanceLoan maintenanceLoan;
+                        float loanAmount,salary;
+                        cout<<"Enter salary"<<endl;
+                        cin>>salary;
+                        if (maintenanceLoan.checkEligibility(bb)) 
+                        {
+                            float loanAmount = maintenanceLoan.calculateLoanAmount(salary);
+                            float totalInterest = maintenanceLoan.calculateInterest(loanAmount);
+                            maintenanceLoan.display(bb);
+                            cout << "Loan Amount: RM " << loanAmount << endl;
+                            cout << "Total Interest: RM " << totalInterest << endl;
+                            
+                        } else {
+                            cout<< "Not eligible for Home Loan.\n";
+                            
+                        }
+                    break;
+                }
+                case 5:
+                {
+                PersonalLoan personal;
+                float salary;
+                cout<<"enter annual salary"<<endl;
+                cin>>salary;
+                if (personal.checkEligibility(bb)) 
+                {
+                    float loanAmount = personal.calculateLoanAmount(salary);
+                    float totalInterest = personal.calculateInterest(loanAmount);
+                    personal.display(bb);
+                    cout << "Loan Amount: RM " << loanAmount << endl;
+                    cout << "Total Interest: RM " << totalInterest << endl;
+                } else 
+                {
+                    cout << "Not eligible for Home Loan.\n";
+                    
+                }
+                break;
+                }
+
+                default :
+                cout<<"wrong choice"<<endl;
+                    
+                }
+            }
+}while(choice<=5);
+return 0;
+}
