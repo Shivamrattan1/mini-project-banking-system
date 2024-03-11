@@ -1,0 +1,521 @@
+#include<iostream>
+#include<fstream>
+#include<string>
+#include<cstdio>
+#include<cmath>
+using namespace std;
+class Bank {
+string name,adress,phoneno;
+float balance;
+int type,acc_no,dd,yy,mm,dei,txti,cd,cm,cy,pin;
+public:
+Bank(): name(""), adress(""), acc_no(0), balance(0.0),dd(0),mm(0),yy(0),type(0),dei(0),txti(0),cd(0),cm(0),cy(0) {}
+friend void set(Bank &,int );
+friend void find();
+friend void show(Bank);
+void deposit(float k)
+{
+    string s;
+    float i;
+    s=to_string(acc_no);
+    int d,m,y,df,dm,dy,ff=0;
+    s=s+".txt";
+    fstream myfile;
+    cout<<"enter current date day,month,year"<<endl;
+    cin>>d>>m>>y;
+    df=d-cd;
+    if(df<0)
+    {
+        df=df+30;
+        ff=1;
+    }
+    dm=m-cm;
+    if(ff==1)
+    {
+        dm=dm-1;
+        ff=0;
+    }
+    if(dm<0)
+    {
+        dm=dm+12;
+        ff=1;
+    }
+    dy=y-cy;
+    if(ff==1)
+    {
+        dy=dy-1;
+        ff=0;
+    }
+    if(dy<0)
+    {
+        cout<<"wrong date input"<<endl;
+        return;
+    }
+    if(dm>0 ||(dm==0 && dy>0))
+    {
+            myfile.open(s,ios::out);
+            myfile<<"date          "<<"name/deposit/withrawl    "<<" deposited or withrawl"<<"    final balance\n";
+            myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<name<<"                    "<<balance<<"                    "<<balance<<"\n";
+            if(dy>0)
+            {
+                i=interest(dy);
+                cout<<balance<<i;
+                balance = balance+i;
+                myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"interst"<<"                           "<<i<<"                   "<<balance<<"\n";
+                if(dei==1)
+                {
+                    balance=balance-400;
+                     myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"debit card charge"<<"                  "<<"400"<<"                   "<<balance<<"\n";
+                }
+                if(txti==1)
+                {
+                    balance=balance-200;
+                     myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"text service charge"<<"                  "<<"200"  <<"                   "<<balance<<"\n";
+                }
+            }
+            balance=balance+k;
+            myfile<<d<<"/"<<m<<"/"<<y<<"    "<<"deposit"<<"                            "<<k<<"                   "<<balance<<"\n";
+            cd=d;
+            cm=m;
+            cy=y;
+    }
+    else
+    {
+            myfile.open(s,ios::app);
+            balance=balance+k;
+            myfile<<d<<"/"<<m<<"/"<<y<<"    "<<"deposit"<<"                            "<<k<<"                   "<<balance<<"\n";
+    }
+    myfile.close();
+    writeupdate();
+}
+void writeupdate() {
+    fstream file("Accounts.dat", ios::binary | ios::in | ios::out);
+
+    if (!file) {
+        cerr << "Error opening file!" << endl;
+        return;
+    }
+
+    int typ,acc,dod,mom,yoy,cdod,cmom,cyoy,deoi,txtoi,pn;
+    float balanc;
+
+    bool found = false;
+
+    while (file.read(reinterpret_cast<char*>(&typ),sizeof(int))) {
+        // Read the account number  // Read the balance
+        file.read(reinterpret_cast<char*>(&acc),sizeof(int));
+        file.read(reinterpret_cast<char*>(&deoi),sizeof(int));
+        file.read(reinterpret_cast<char*>(&txtoi),sizeof(int));
+        file.read(reinterpret_cast<char*>(&pn),sizeof(int));
+        file.read(reinterpret_cast<char*>(&balanc), sizeof(float));
+        if (acc_no == acc) {
+            file.seekp(file.tellg() - static_cast<int>(sizeof(float)), ios::beg);
+            file.write(reinterpret_cast<char*>(&balance), sizeof(float));
+            
+            found = true;
+            break;
+        }
+        file.read(reinterpret_cast<char*>(&dod),sizeof(int));
+        file.read(reinterpret_cast<char*>(&mom),sizeof(int));
+        file.read(reinterpret_cast<char*>(&yoy),sizeof(int));
+        file.read(reinterpret_cast<char*>(&cdod),sizeof(int));
+        file.read(reinterpret_cast<char*>(&cmom),sizeof(int));
+        file.read(reinterpret_cast<char*>(&cyoy),sizeof(int));
+        file.write(reinterpret_cast<char*>(&dd),sizeof(dd));
+        file.write(reinterpret_cast<char*>(&mm),sizeof(mm));
+        file.write(reinterpret_cast<char*>(&yy),sizeof(yy));
+        file.write(reinterpret_cast<char*>(&cd),sizeof(cd));
+        file.write(reinterpret_cast<char*>(&cm),sizeof(cm));
+        file.write(reinterpret_cast<char*>(&cy),sizeof(cy));
+    }
+    file.close();
+}
+float interest(int a)
+{
+    float f,p;
+    yy=yy+a;
+    if(type==1)
+    {
+        if(balance<0)
+        {
+            f=balance*(pow(1.06,a));
+            p=(float)(f-balance);
+            return p;
+        }
+        else
+        {
+            f=balance*(pow(1.04,a));
+            p=(float)(f-balance);
+            return p;
+        }
+    }
+    else
+    {
+         if(balance<50)
+        {
+            f=balance*(pow(1.1,a));
+            if(f>0)
+            {
+                f=-f;
+            }
+            p=(float)(f-balance);
+            return p;
+        }
+        else
+        {
+            f=balance*(pow(1.05,a));
+            p=(float)(f-balance);
+            return p;
+        }
+    }
+}
+void withdraw()
+{
+    float k;
+    int pp;
+    string s;
+    int i;
+    cout<<"enter the 6 digit security pin for account\n"<<endl;
+    cin>>pp;
+    if(pp==pin)
+        {
+            cout<<"Enter amount to withdraw"<<endl;
+            cin>>k;
+        }
+    else
+        {
+            cout<<"security pin incorrect input"<<endl;
+            return;
+        }
+    s=to_string(acc_no);
+    int d,m,y,df,dm,dy,ff=0;
+    s=s+".txt";
+    fstream myfile;
+    cout<<"enter current date day,month,year"<<endl;
+    cin>>d>>m>>y;
+    df=d-cd;
+    if(df<0)
+    {
+        df=df+30;
+        ff=1;
+    }
+    dm=m-cm;
+    if(ff==1)
+    {
+        dm=dm-1;
+        ff=0;
+    }
+    if(dm<0)
+    {
+        dm=dm+12;
+        ff=1;
+    }
+    dy=y-cy;
+    if(ff==1)
+    {
+        dy=dy-1;
+        ff=0;
+    }
+    if(dy<0)
+    {
+        cout<<"wrong date input"<<endl;
+        return;
+    }
+    if(dm>0 ||(dm==0 && dy>0))
+    {
+            myfile.open(s,ios::out);
+            myfile<<"date          "<<"name/deposit/withrawl    "<<" deposited or withrawl"<<"    final balance\n";
+            myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<name<<"                    "<<balance<<"                    "<<balance<<"\n";
+            if(dy>0)
+            {
+                i=interest(dy);
+                balance=balance+i;
+                myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"interst"<<"                           "<<i<<"                   "<<balance<<"\n";
+                if(dei==1)
+                {
+                    balance=balance-400;
+                     myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"debit card charge"<<"                  "<<"400"<<"                   "<<balance<<"\n";
+                }
+                if(txti==1)
+                {
+                    balance=balance-200;
+                     myfile<<dd<<"/"<<mm<<"/"<<yy<<"    "<<"text service charge"<<"                  "<<"200"  <<"                   "<<balance<<"\n";
+                }
+            }
+            if(type==1 and (balance-k)<5000)
+            {
+                cout<<"amount insufficient"<<endl;
+                return;
+            }
+            if(type==1 and (balance-k)<100)
+            {
+                cout<<"amount insufficient"<<endl;
+                return;
+            }
+            balance=balance-k;
+            myfile<<d<<"/"<<m<<"/"<<y<<"    "<<"withdraw"<<"                           "<<k<<"                   "<<balance<<"\n";
+            cd=d;
+            cm=m;
+            cy=y;
+    }
+    else
+    {
+            myfile.open(s,ios::app);
+            balance=balance-k;
+            myfile<<d<<"/"<<m<<"/"<<y<<"    "<<"withdraw"<<"                           "<<k<<"                   "<<balance<<"\n";
+    }
+    myfile.close();
+    writeupdate();
+}
+void writetofile(){
+    fstream myfile,sfile;
+    myfile.open("Accounts.dat",ios::binary | ios::app);
+    sfile.open("Accounts.txt",ios::out | ios::app);
+    if(myfile.is_open() && sfile.is_open())
+    {
+        myfile.write(reinterpret_cast<char*>(&type),sizeof(type));
+        myfile.write(reinterpret_cast<char*>(&acc_no),sizeof(acc_no));
+        myfile.write(reinterpret_cast<char*>(&dei),sizeof(dei));
+        myfile.write(reinterpret_cast<char*>(&txti),sizeof(txti));
+        myfile.write(reinterpret_cast<char*>(&pin),sizeof(pin));
+        myfile.write(reinterpret_cast<char*>(&balance),sizeof(balance));
+        myfile.write(reinterpret_cast<char*>(&dd),sizeof(dd));
+        myfile.write(reinterpret_cast<char*>(&mm),sizeof(mm));
+        myfile.write(reinterpret_cast<char*>(&yy),sizeof(yy));
+        myfile.write(reinterpret_cast<char*>(&cd),sizeof(cd));
+        myfile.write(reinterpret_cast<char*>(&cm),sizeof(cm));
+        myfile.write(reinterpret_cast<char*>(&cy),sizeof(cy));
+        sfile<<name<<endl;
+        sfile<<adress<<endl;
+        sfile<<phoneno<<endl;
+    }
+    else
+    {
+        cout<<"error opening file"<<endl;
+    }
+    myfile.close();
+    sfile.close();
+}
+bool find(int k){
+    fstream myfile,sfile;
+    string ss;
+    myfile.open("Accounts.dat",ios::in);
+    sfile.open("Accounts.txt",ios::in);
+     if(myfile.is_open() && sfile.is_open())
+    {
+        while( myfile.read(reinterpret_cast<char*>(&type),sizeof(type)) && getline(sfile,ss))
+        {
+        myfile.read(reinterpret_cast<char*>(&acc_no),sizeof(acc_no));
+        myfile.read(reinterpret_cast<char*>(&dei),sizeof(dei));
+        myfile.read(reinterpret_cast<char*>(&txti),sizeof(txti));
+        myfile.read(reinterpret_cast<char*>(&pin),sizeof(pin));
+        myfile.read(reinterpret_cast<char*>(&balance),sizeof(balance));
+        myfile.read(reinterpret_cast<char*>(&dd),sizeof(dd));
+        myfile.read(reinterpret_cast<char*>(&mm),sizeof(mm));
+        myfile.read(reinterpret_cast<char*>(&yy),sizeof(yy));
+        myfile.read(reinterpret_cast<char*>(&cd),sizeof(cd));
+        myfile.read(reinterpret_cast<char*>(&cm),sizeof(cm));
+        myfile.read(reinterpret_cast<char*>(&cy),sizeof(cy));
+        name=ss;
+        getline(sfile,ss);
+        adress=ss;
+        getline(sfile,ss);
+        phoneno=ss;
+        if(acc_no==k)
+        {
+            myfile.close();
+            sfile.close();
+            cout<<"FOUND ACCOUNT"<<endl;
+            return true;
+        }
+        }
+             myfile.close();
+            sfile.close();
+            cout<<"ACCOUNT NOT FOUND"<<endl;
+            return false;
+    } 
+    myfile.close();
+    sfile.close();
+    cout<<"file opening error";
+        return false;
+}
+int count(){
+    fstream sfile;
+    string ss;
+    int c=0;
+    sfile.open("Accounts.txt",ios::in);
+     if( sfile.is_open())
+    {
+        while(getline(sfile,ss))
+        {
+        name=ss;
+        getline(sfile,ss);
+        adress=ss;
+        c=c+1;
+        }
+    }
+    sfile.close();
+return c;
+}
+};
+void set(Bank &obj,int k){
+    float f;
+    string s;
+    cin.ignore();
+        obj.acc_no=k;
+        cout<<"Enter the account holder Name with first letter capital other small\n";
+        getline(cin,obj.name);
+        cout<<"Enter the account holder adress\n";
+        getline(cin,obj.adress);
+        cout<<"Enter the 10 digit phone no. of user\n";
+        getline(cin,obj.phoneno);
+        if((obj.phoneno).size()!=10)
+        {
+            cout<<"phoneno  incorrect input"<<endl;
+            return;
+        }
+        cout<<"enter date, month,year of opening"<<endl;
+        cin>>obj.dd>>obj.mm>>obj.yy;
+        getchar();
+        cout<<"Enter  6 digit pin  for your account"<<endl;
+        cin>>obj.pin;
+        if(obj.pin>999999 or obj.pin<0)
+        {
+            cout<<"security pin incorrect input"<<endl;
+            return;
+        }
+        cout<<"Enter type of account to use 1 for current 2 for Savings\n";
+        cin>>obj.type;
+        if(obj.type==1)
+        {
+        cout<<"enter initial deposit of bank minimum RM 5000"<<endl;
+        cin>>f;
+        if(f<5000)
+        {
+        cout<<"amount insufficient"<<endl;
+        return;
+        }
+        else{
+            obj.balance=f;
+        }
+        
+    }
+    else if(obj.type==2)
+    {
+        cout<<"enter initial deposit of bank minimum RM 100"<<endl;
+        cin>>f;
+        if(f<100)
+        {
+            cout<<"amount insufficient"<<endl;
+            return;
+        }
+        else{
+        obj.balance=f;
+        }
+    }
+else
+{
+    cout<<"wrong input for account type\n";
+    return;
+}
+s=to_string(obj.acc_no);
+s=s+".txt";
+fstream myfile,myfile2;
+myfile.open(s,ios::out);
+myfile<<"date          "<<"name/deposit/withrawl    "<<" deposited or withrawl"<<"    final balance\n";
+myfile<<obj.dd<<"/"<<obj.mm<<"/"<<obj.yy<<"    "<<obj.name<<"                    "<<obj.balance<<"                    "<<obj.balance<<"\n";
+cout<<"do you want debit card issue 1 for yess 0 for no\n";
+cin>>obj.dei;
+cout<<"do you want text service issue 1 for yess 0 for no \n";
+cin>>obj.txti;
+myfile.close();
+obj.cd=obj.dd;
+obj.cm=obj.mm;
+obj.cy=obj.yy;
+obj.writetofile();
+cout<<"your account no. is"<<k<<endl;
+}
+void show(Bank obj){
+    int pp;
+    cout<<"enter the 6 digit security pin for account\n"<<endl;
+    cin>>pp;
+    if(pp==obj.pin)
+        {
+            string s;
+            fstream myfile;
+            s=to_string(obj.acc_no);
+            s=s+".txt";
+            myfile.open(s,ios::in);
+            if(myfile.is_open())
+            {
+                while(getline(myfile,s))
+                {
+                    cout<<s;
+                    cout<<"\n";
+                }
+            }
+            myfile.close();
+        }
+        else
+        {
+            cout<<"security pin incorrect input"<<endl;
+        }
+}
+int main()
+{
+    Bank ob;
+    int n,c=1000,x,pp;
+    float f;
+    c=c+ob.count();
+    do
+    {
+        cout<<"************MENU**************\n";
+        cout<<"press 1 for open account\n";
+        cout<<"press 2 for deposit money\n";
+        cout<<"press 3 for withdraw money\n";
+        cout<<"press 4 for printing balance sheet\n";
+        cout<<"press 5 for exit\n";
+        cout<<"input your choice\n";
+        cin>>n;
+        switch(n)
+        {
+            case 1:
+            set(ob,c);
+            c=c+1;
+            break;
+            case 2:
+            cout<<"Enter account no."<<endl;
+            cin>>x;
+           if(ob.find(x))
+            {
+                
+                cout<<"Enter amount to deposit"<<endl;
+                cin>>f;
+                ob.deposit(f);
+            }
+            break;
+            case 3:
+            cout<<"Enter account no."<<endl;
+            cin>>x;
+            if(ob.find(x))
+            {
+                ob.withdraw();
+            }
+            break;
+            case 4:
+            cout<<"Enter account no."<<endl;
+            cin>>x;
+            if(ob.find(x))
+            {
+                show(ob);
+            }
+            break;
+            case 5:
+            break;
+            default:
+            cout<<"WRONG INPUT"<<endl;
+            break;
+        }
+        }while(n!=5);
+        return 0;
+}
